@@ -1,0 +1,418 @@
+\documentclass[]{article}
+\usepackage{lmodern}
+\usepackage{amssymb,amsmath}
+\usepackage{ifxetex,ifluatex}
+\usepackage{fixltx2e} % provides \textsubscript
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+\else % if luatex or xelatex
+  \ifxetex
+    \usepackage{mathspec}
+  \else
+    \usepackage{fontspec}
+  \fi
+  \defaultfontfeatures{Ligatures=TeX,Scale=MatchLowercase}
+\fi
+% use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+% use microtype if available
+\IfFileExists{microtype.sty}{%
+\usepackage{microtype}
+\UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\usepackage[margin=1in]{geometry}
+\usepackage{hyperref}
+\hypersetup{unicode=true,
+            pdftitle={Análisis de las llamadas de A. pertinax (variable T1 dur)},
+            pdfauthor={José R. Ferrer Paris},
+            pdfborder={0 0 0},
+            breaklinks=true}
+\urlstyle{same}  % don't use monospace font for urls
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\usepackage{framed}
+\definecolor{shadecolor}{RGB}{248,248,248}
+\newenvironment{Shaded}{\begin{snugshade}}{\end{snugshade}}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{0.94,0.16,0.16}{#1}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.77,0.63,0.00}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\BuiltInTok}[1]{#1}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{0.64,0.00,0.00}{\textbf{#1}}}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\ImportTok}[1]{#1}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.81,0.36,0.00}{\textbf{#1}}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\usepackage{longtable,booktabs}
+\usepackage{graphicx,grffile}
+\makeatletter
+\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
+\def\maxheight{\ifdim\Gin@nat@height>\textheight\textheight\else\Gin@nat@height\fi}
+\makeatother
+% Scale images if necessary, so that they will not overflow the page
+% margins by default, and it is still possible to overwrite the defaults
+% using explicit options in \includegraphics[width, height, ...]{}
+\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
+\IfFileExists{parskip.sty}{%
+\usepackage{parskip}
+}{% else
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt plus 2pt minus 1pt}
+}
+\setlength{\emergencystretch}{3em}  % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\setcounter{secnumdepth}{0}
+% Redefines (sub)paragraphs to behave more like sections
+\ifx\paragraph\undefined\else
+\let\oldparagraph\paragraph
+\renewcommand{\paragraph}[1]{\oldparagraph{#1}\mbox{}}
+\fi
+\ifx\subparagraph\undefined\else
+\let\oldsubparagraph\subparagraph
+\renewcommand{\subparagraph}[1]{\oldsubparagraph{#1}\mbox{}}
+\fi
+
+%%% Use protect on footnotes to avoid problems with footnotes in titles
+\let\rmarkdownfootnote\footnote%
+\def\footnote{\protect\rmarkdownfootnote}
+
+%%% Change title format to be more compact
+\usepackage{titling}
+
+% Create subtitle command for use in maketitle
+\providecommand{\subtitle}[1]{
+  \posttitle{
+    \begin{center}\large#1\end{center}
+    }
+}
+
+\setlength{\droptitle}{-2em}
+
+  \title{Análisis de las llamadas de A. pertinax (variable T1 dur)}
+    \pretitle{\vspace{\droptitle}\centering\huge}
+  \posttitle{\par}
+    \author{José R. Ferrer Paris}
+    \preauthor{\centering\large\emph}
+  \postauthor{\par}
+    \date{}
+    \predate{}\postdate{}
+  
+\usepackage{graphicx}
+\usepackage{float}
+
+\begin{document}
+\maketitle
+
+Leemos el archivo de datos de Aratinga pertinax, versión de 2019, y
+reclassificamos la variable Region para facilitar interpretación:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{dts <-}\StringTok{ }\KeywordTok{read.csv}\NormalTok{(}\KeywordTok{sprintf}\NormalTok{(}\StringTok{"%s/data/mdf_JR_15viii19.csv"}\NormalTok{,script.dir))}
+
+\KeywordTok{str}\NormalTok{(dts)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 'data.frame':    1351 obs. of  9 variables:
+##  $ IndivGroup: Factor w/ 97 levels "AUA01","AUA02",..: 1 1 1 1 1 1 1 1 2 2 ...
+##  $ soundfile : Factor w/ 1351 levels "0211327a","0211344a",..: 1 2 3 4 5 6 7 8 9 10 ...
+##  $ S1_dur    : num  0.156 0.133 0.14 0.136 0.149 ...
+##  $ Tcall_dur : num  0.154 0.137 0.144 0.137 0.144 ...
+##  $ RecSite   : Factor w/ 37 levels "A6","A7","B1",..: 1 1 1 1 1 1 1 1 1 1 ...
+##  $ Lat       : num  12.5 12.5 12.5 12.5 12.5 ...
+##  $ Long      : num  -69.9 -69.9 -69.9 -69.9 -69.9 ...
+##  $ LocCode   : Factor w/ 14 levels "AUA","BON","CUR",..: 1 1 1 1 1 1 1 1 1 1 ...
+##  $ Region    : Factor w/ 2 levels "isl","main": 1 1 1 1 1 1 1 1 1 1 ...
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{dts}\OperatorTok{$}\NormalTok{Region <-}\StringTok{ }\KeywordTok{factor}\NormalTok{(dts}\OperatorTok{$}\NormalTok{Region,}\DataTypeTok{levels=}\KeywordTok{c}\NormalTok{(}\StringTok{"main"}\NormalTok{,}\StringTok{"isl"}\NormalTok{))}
+\end{Highlighting}
+\end{Shaded}
+
+Vamos a comparar ocho modelos para la variable S1\_dur
+
+\begin{longtable}[]{@{}llll@{}}
+\toprule
+MODELO & efecto fijo & efecto aleatorio &
+heterocedasticidad\tabularnewline
+\midrule
+\endhead
+f000 & isla & constante & sin\tabularnewline
+f010 & isla & isla & sin\tabularnewline
+f001 & isla & constante & isla\tabularnewline
+f011 & isla & isla & isla\tabularnewline
+--- & --- & --- & ---\tabularnewline
+f100 & isla+long & constante & sin\tabularnewline
+f110 & isla+long & isla & sin\tabularnewline
+f101 & isla+long & constante & isla\tabularnewline
+f111 & isla+long & isla & isla\tabularnewline
+\bottomrule
+\end{longtable}
+
+modelo nulo con efecto fijo de la isla
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{f000 <-}\StringTok{ }\KeywordTok{lme}\NormalTok{(S1_dur}\OperatorTok{~}\NormalTok{Region,dts,}\DataTypeTok{random=}\OperatorTok{~}\DecValTok{1}\OperatorTok{|}\NormalTok{LocCode}\OperatorTok{/}\NormalTok{IndivGroup, }\DataTypeTok{method=}\StringTok{"ML"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+nulo + efecto aleatorio de isla/continente
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{f010 <-}\StringTok{ }\KeywordTok{lme}\NormalTok{(S1_dur}\OperatorTok{~}\NormalTok{Region,dts,}
+  \DataTypeTok{random=}\KeywordTok{list}\NormalTok{(}\DataTypeTok{LocCode=}\KeywordTok{pdDiag}\NormalTok{(}\OperatorTok{~}\NormalTok{Region),}\DataTypeTok{IndivGroup=}\KeywordTok{pdDiag}\NormalTok{(}\OperatorTok{~}\NormalTok{Region)), }\DataTypeTok{method=}\StringTok{"ML"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+nulo + heterocedasticidad
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{f001 <-}\StringTok{ }\KeywordTok{lme}\NormalTok{(S1_dur}\OperatorTok{~}\NormalTok{Region,dts,}\DataTypeTok{random=}\OperatorTok{~}\DecValTok{1}\OperatorTok{|}\NormalTok{LocCode}\OperatorTok{/}\NormalTok{IndivGroup,}\DataTypeTok{weights=}\KeywordTok{varIdent}\NormalTok{(}\DataTypeTok{form=}\OperatorTok{~}\DecValTok{1}\OperatorTok{|}\NormalTok{Region), }\DataTypeTok{method=}\StringTok{"ML"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+nulo + efecto aleatorio de isla/continente + heterocedasticidad
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{f011 <-}
+\StringTok{ }\KeywordTok{lme}\NormalTok{(S1_dur}\OperatorTok{~}\NormalTok{Region,dts,}
+   \DataTypeTok{random=}\KeywordTok{list}\NormalTok{(}\DataTypeTok{LocCode=}\KeywordTok{pdDiag}\NormalTok{(}\OperatorTok{~}\NormalTok{Region),}\DataTypeTok{IndivGroup=}\KeywordTok{pdDiag}\NormalTok{(}\OperatorTok{~}\NormalTok{Region)),}
+   \DataTypeTok{weights=}\KeywordTok{varIdent}\NormalTok{(}\DataTypeTok{form=}\OperatorTok{~}\DecValTok{1}\OperatorTok{|}\NormalTok{Region), }\DataTypeTok{method=}\StringTok{"ML"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+modelo alternativo con efecto fijo de la isla y longitud
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{f100 <-}\StringTok{ }\KeywordTok{lme}\NormalTok{(S1_dur}\OperatorTok{~}\NormalTok{Region}\OperatorTok{+}\NormalTok{Long,dts,}\DataTypeTok{random=}\OperatorTok{~}\DecValTok{1}\OperatorTok{|}\NormalTok{LocCode}\OperatorTok{/}\NormalTok{IndivGroup, }\DataTypeTok{method=}\StringTok{"ML"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+alternativo + efecto aleatorio de isla/continente
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{f110 <-}\StringTok{ }\KeywordTok{lme}\NormalTok{(S1_dur}\OperatorTok{~}\NormalTok{Region}\OperatorTok{+}\NormalTok{Long,dts,}
+     \DataTypeTok{random=}\KeywordTok{list}\NormalTok{(}\DataTypeTok{LocCode=}\KeywordTok{pdDiag}\NormalTok{(}\OperatorTok{~}\NormalTok{Region),}\DataTypeTok{IndivGroup=}\KeywordTok{pdDiag}\NormalTok{(}\OperatorTok{~}\NormalTok{Region)), }\DataTypeTok{method=}\StringTok{"ML"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+alternativo + heterocedasticidad
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{f101 <-}\StringTok{ }\KeywordTok{lme}\NormalTok{(S1_dur}\OperatorTok{~}\NormalTok{Region}\OperatorTok{+}\NormalTok{Long,dts,}\DataTypeTok{random=}\OperatorTok{~}\DecValTok{1}\OperatorTok{|}\NormalTok{LocCode}\OperatorTok{/}\NormalTok{IndivGroup,}\DataTypeTok{weights=}\KeywordTok{varIdent}\NormalTok{(}\DataTypeTok{form=}\OperatorTok{~}\DecValTok{1}\OperatorTok{|}\NormalTok{Region), }\DataTypeTok{method=}\StringTok{"ML"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+alternativo + efecto aleatorio de isla/continente + heterocedasticidad
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{f111 <-}
+\StringTok{      }\KeywordTok{lme}\NormalTok{(S1_dur}\OperatorTok{~}\NormalTok{Region}\OperatorTok{+}\NormalTok{Long,dts,}
+        \DataTypeTok{random=}\KeywordTok{list}\NormalTok{(}\DataTypeTok{LocCode=}\KeywordTok{pdDiag}\NormalTok{(}\OperatorTok{~}\NormalTok{Region),}\DataTypeTok{IndivGroup=}\KeywordTok{pdDiag}\NormalTok{(}\OperatorTok{~}\NormalTok{Region)),}
+        \DataTypeTok{weights=}\KeywordTok{varIdent}\NormalTok{(}\DataTypeTok{form=}\OperatorTok{~}\DecValTok{1}\OperatorTok{|}\NormalTok{Region), }\DataTypeTok{method=}\StringTok{"ML"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\hypertarget{resultados}{%
+\subsection{Resultados}\label{resultados}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{anova}\NormalTok{(f000,f010,f001,f011,}
+\NormalTok{  f100,f110,f101,f111)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##      Model df       AIC       BIC   logLik   Test  L.Ratio p-value
+## f000     1  5 -6171.918 -6145.875 3090.959                        
+## f010     2  7 -6192.394 -6155.934 3103.197 1 vs 2 24.47592  <.0001
+## f001     3  6 -6170.306 -6139.055 3091.153 2 vs 3 24.08761  <.0001
+## f011     4  8 -6190.912 -6149.243 3103.456 3 vs 4 24.60566  <.0001
+## f100     5  6 -6171.541 -6140.289 3091.771 4 vs 5 23.37118  <.0001
+## f110     6  8 -6190.970 -6149.301 3103.485 5 vs 6 23.42902  <.0001
+## f101     7  7 -6169.927 -6133.467 3091.963 6 vs 7 23.04318  <.0001
+## f111     8  9 -6189.484 -6142.606 3103.742 7 vs 8 23.55687  <.0001
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{mis.aics <-}\StringTok{ }\KeywordTok{AIC}\NormalTok{(f000,f010,f001,f011,}
+\NormalTok{  f100,f110,f101,f111)}
+\KeywordTok{cbind}\NormalTok{(mis.aics,}\DataTypeTok{delta.AIC=}\NormalTok{mis.aics[,}\DecValTok{2}\NormalTok{]}\OperatorTok{-}\KeywordTok{min}\NormalTok{(mis.aics[,}\DecValTok{2}\NormalTok{]))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##      df       AIC delta.AIC
+## f000  5 -6171.918 20.475921
+## f010  7 -6192.394  0.000000
+## f001  6 -6170.306 22.087613
+## f011  8 -6190.912  1.481951
+## f100  6 -6171.541 20.853132
+## f110  8 -6190.970  1.424114
+## f101  7 -6169.927 22.467296
+## f111  9 -6189.484  2.910423
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{f010}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Linear mixed-effects model fit by maximum likelihood
+##   Data: dts 
+##   Log-likelihood: 3103.197
+##   Fixed: S1_dur ~ Region 
+## (Intercept)   Regionisl 
+##  0.10394315  0.03296709 
+## 
+## Random effects:
+##  Formula: ~Region | LocCode
+##  Structure: Diagonal
+##         (Intercept)  Regionisl
+## StdDev:  0.01225407 0.03564827
+## 
+##  Formula: ~Region | IndivGroup %in% LocCode
+##  Structure: Diagonal
+##         (Intercept)  Regionisl   Residual
+## StdDev:  0.01327504 0.02540965 0.02224762
+## 
+## Number of Observations: 1351
+## Number of Groups: 
+##                 LocCode IndivGroup %in% LocCode 
+##                      14                      97
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{summary}\NormalTok{(f010)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Linear mixed-effects model fit by maximum likelihood
+##  Data: dts 
+##         AIC       BIC   logLik
+##   -6192.394 -6155.934 3103.197
+## 
+## Random effects:
+##  Formula: ~Region | LocCode
+##  Structure: Diagonal
+##         (Intercept)  Regionisl
+## StdDev:  0.01225407 0.03564827
+## 
+##  Formula: ~Region | IndivGroup %in% LocCode
+##  Structure: Diagonal
+##         (Intercept)  Regionisl   Residual
+## StdDev:  0.01327504 0.02540965 0.02224762
+## 
+## Fixed effects: S1_dur ~ Region 
+##                  Value   Std.Error   DF   t-value p-value
+## (Intercept) 0.10394315 0.005326166 1254 19.515568  0.0000
+## Regionisl   0.03296709 0.018461144   12  1.785755  0.0994
+##  Correlation: 
+##           (Intr)
+## Regionisl -0.289
+## 
+## Standardized Within-Group Residuals:
+##        Min         Q1        Med         Q3        Max 
+## -3.6150052 -0.5554097 -0.0942740  0.3947379  5.6454153 
+## 
+## Number of Observations: 1351
+## Number of Groups: 
+##                 LocCode IndivGroup %in% LocCode 
+##                      14                      97
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{intervals}\NormalTok{(f010)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Approximate 95% confidence intervals
+## 
+##  Fixed effects:
+##                    lower       est.      upper
+## (Intercept)  0.093501706 0.10394315 0.11438459
+## Regionisl   -0.007226506 0.03296709 0.07316068
+## attr(,"label")
+## [1] "Fixed effects:"
+## 
+##  Random Effects:
+##   Level: LocCode 
+##                       lower       est.      upper
+## sd((Intercept)) 0.006287163 0.01225407 0.02388392
+## sd(Regionisl)   0.016885509 0.03564827 0.07525977
+##   Level: IndivGroup 
+##                      lower       est.      upper
+## sd((Intercept)) 0.01020718 0.01327504 0.01726497
+## sd(Regionisl)   0.01870918 0.02540965 0.03450981
+## 
+##  Within-group standard error:
+##      lower       est.      upper 
+## 0.02139408 0.02224762 0.02313522
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{VarCorr}\NormalTok{(f010)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##              Variance       StdDev    
+## LocCode =    pdDiag(Region)           
+## (Intercept)  0.0001501621   0.01225407
+## Regionisl    0.0012707994   0.03564827
+## IndivGroup = pdDiag(Region)           
+## (Intercept)  0.0001762266   0.01327504
+## Regionisl    0.0006456502   0.02540965
+## Residual     0.0004949568   0.02224762
+\end{verbatim}
+
+
+\end{document}

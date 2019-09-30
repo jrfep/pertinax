@@ -1,0 +1,110 @@
+---
+title: "Análisis de las llamadas de A. pertinax (variable T1 dur)"
+author: "José R. Ferrer Paris"
+output: pdf_document
+header-includes:
+- \usepackage{graphicx}
+- \usepackage{float}
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,
+			   eval = TRUE,
+                 warning=FALSE,
+                 fig.pos='H'
+                )
+
+library(nlme)
+library(ape)
+
+```
+
+
+Leemos el archivo de datos de Aratinga pertinax, versión de 2019, y reclassificamos la variable Region para facilitar interpretación:
+
+```{r}
+dts <- read.csv(sprintf("%s/data/mdf_JR_15viii19.csv",script.dir))
+
+str(dts)
+dts$Region <- factor(dts$Region,levels=c("main","isl"))
+
+```
+Vamos a comparar ocho modelos para la variable S1_dur
+
+|   MODELO  |  efecto fijo | efecto aleatorio | heterocedasticidad |
+| --- | --- | --- | --- |
+|f000|isla|constante|sin|
+|f010| isla |isla | sin |
+|f001| isla |constante| isla |
+|f011| isla |isla | isla |
+| --- | --- | --- | --- |
+|f100| isla+long|constante|sin|
+|f110| isla+long|isla|sin|
+|f101| isla+long|constante| isla|
+|f111| isla+long|isla |isla|
+
+ modelo nulo con efecto fijo de la isla
+```{r}
+f000 <- lme(S1_dur~Region,dts,random=~1|LocCode/IndivGroup, method="ML")
+```
+nulo + efecto aleatorio de isla/continente
+```{r}
+f010 <- lme(S1_dur~Region,dts,
+  random=list(LocCode=pdDiag(~Region),IndivGroup=pdDiag(~Region)), method="ML")
+ ```
+ nulo + heterocedasticidad
+ ```{r}
+f001 <- lme(S1_dur~Region,dts,random=~1|LocCode/IndivGroup,weights=varIdent(form=~1|Region), method="ML")
+```
+nulo + efecto aleatorio de isla/continente + heterocedasticidad
+ ```{r}
+f011 <-
+  lme(S1_dur~Region,dts,
+    random=list(LocCode=pdDiag(~Region),IndivGroup=pdDiag(~Region)),
+    weights=varIdent(form=~1|Region), method="ML")
+
+```
+
+ modelo alternativo con efecto fijo de la isla y longitud
+ ```{r}
+f100 <- lme(S1_dur~Region+Long,dts,random=~1|LocCode/IndivGroup, method="ML")
+
+```
+ alternativo + efecto aleatorio de isla/continente
+ ```{r}
+f110 <- lme(S1_dur~Region+Long,dts,
+      random=list(LocCode=pdDiag(~Region),IndivGroup=pdDiag(~Region)), method="ML")
+
+      ```
+ alternativo + heterocedasticidad
+ ```{r}
+f101 <- lme(S1_dur~Region+Long,dts,random=~1|LocCode/IndivGroup,weights=varIdent(form=~1|Region), method="ML")
+
+```
+
+ alternativo + efecto aleatorio de isla/continente + heterocedasticidad
+```{r}
+f111 <-
+      lme(S1_dur~Region+Long,dts,
+        random=list(LocCode=pdDiag(~Region),IndivGroup=pdDiag(~Region)),
+        weights=varIdent(form=~1|Region), method="ML")
+
+```
+
+## Resultados
+
+```{r}
+anova(f000,f010,f001,f011,
+  f100,f110,f101,f111)
+
+mis.aics <- AIC(f000,f010,f001,f011,
+  f100,f110,f101,f111)
+cbind(mis.aics,delta.AIC=mis.aics[,2]-min(mis.aics[,2]))
+
+f010
+
+summary(f010)
+
+intervals(f010)
+
+VarCorr(f010)
+```
