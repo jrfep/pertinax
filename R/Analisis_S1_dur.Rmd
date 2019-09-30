@@ -36,26 +36,25 @@ Vamos a comparar ocho modelos para la variable S1_dur
 |f010| isla |isla | sin |
 |f001| isla |constante| isla |
 |f011| isla |isla | isla |
-| --- | --- | --- | --- |
 |f100| isla+long|constante|sin|
 |f110| isla+long|isla|sin|
 |f101| isla+long|constante| isla|
 |f111| isla+long|isla |isla|
 
- modelo nulo con efecto fijo de la isla
+El modelo nulo con efecto fijo de la isla
 ```{r}
 f000 <- lme(S1_dur~Region,dts,random=~1|LocCode/IndivGroup, method="ML")
 ```
-nulo + efecto aleatorio de isla/continente
+Nulo + efecto aleatorio de isla/continente
 ```{r}
 f010 <- lme(S1_dur~Region,dts,
   random=list(LocCode=pdDiag(~Region),IndivGroup=pdDiag(~Region)), method="ML")
  ```
- nulo + heterocedasticidad
+ Nulo + heterocedasticidad
  ```{r}
 f001 <- lme(S1_dur~Region,dts,random=~1|LocCode/IndivGroup,weights=varIdent(form=~1|Region), method="ML")
 ```
-nulo + efecto aleatorio de isla/continente + heterocedasticidad
+Nulo + efecto aleatorio de isla/continente + heterocedasticidad
  ```{r}
 f011 <-
   lme(S1_dur~Region,dts,
@@ -64,24 +63,24 @@ f011 <-
 
 ```
 
- modelo alternativo con efecto fijo de la isla y longitud
+ Modelo alternativo con efecto fijo de la isla y longitud
  ```{r}
 f100 <- lme(S1_dur~Region+Long,dts,random=~1|LocCode/IndivGroup, method="ML")
 
 ```
- alternativo + efecto aleatorio de isla/continente
+ Alternativo + efecto aleatorio de isla/continente
  ```{r}
 f110 <- lme(S1_dur~Region+Long,dts,
       random=list(LocCode=pdDiag(~Region),IndivGroup=pdDiag(~Region)), method="ML")
 
       ```
- alternativo + heterocedasticidad
+Alternativo + heterocedasticidad
  ```{r}
 f101 <- lme(S1_dur~Region+Long,dts,random=~1|LocCode/IndivGroup,weights=varIdent(form=~1|Region), method="ML")
 
 ```
 
- alternativo + efecto aleatorio de isla/continente + heterocedasticidad
+Alternativo + efecto aleatorio de isla/continente + heterocedasticidad
 ```{r}
 f111 <-
       lme(S1_dur~Region+Long,dts,
@@ -91,16 +90,27 @@ f111 <-
 ```
 
 ## Resultados
-
+Comparamos el AIC de los modelos ajustados
 ```{r}
 anova(f000,f010,f001,f011,
   f100,f110,f101,f111)
+```
+
+Reordenamos los modelos según el AIC
+```{r}
 
 mis.aics <- AIC(f000,f010,f001,f011,
   f100,f110,f101,f111)
-cbind(mis.aics,delta.AIC=mis.aics[,2]-min(mis.aics[,2]))
+aic.tab <- cbind(mis.aics,delta.AIC=mis.aics[,2]-min(mis.aics[,2]))
+aic.tab[order(aic.tab$AIC),]
 
-f010
+```
+
+El Mejor modelo incluye efectos fijos y aleatorios de Isla, sin heterocedasticidad. Los modelos con longitud en el efecto fijo o heterocedasticidad son casi equivalentes (delta AIC < 2).
+
+Los detalles del modelo a continuación:
+
+```{r}
 
 summary(f010)
 

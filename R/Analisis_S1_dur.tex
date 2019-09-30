@@ -172,7 +172,6 @@ f000 & isla & constante & sin\tabularnewline
 f010 & isla & isla & sin\tabularnewline
 f001 & isla & constante & isla\tabularnewline
 f011 & isla & isla & isla\tabularnewline
---- & --- & --- & ---\tabularnewline
 f100 & isla+long & constante & sin\tabularnewline
 f110 & isla+long & isla & sin\tabularnewline
 f101 & isla+long & constante & isla\tabularnewline
@@ -180,7 +179,7 @@ f111 & isla+long & isla & isla\tabularnewline
 \bottomrule
 \end{longtable}
 
-modelo nulo con efecto fijo de la isla
+El modelo nulo con efecto fijo de la isla
 
 \begin{Shaded}
 \begin{Highlighting}[]
@@ -188,7 +187,7 @@ modelo nulo con efecto fijo de la isla
 \end{Highlighting}
 \end{Shaded}
 
-nulo + efecto aleatorio de isla/continente
+Nulo + efecto aleatorio de isla/continente
 
 \begin{Shaded}
 \begin{Highlighting}[]
@@ -197,7 +196,7 @@ nulo + efecto aleatorio de isla/continente
 \end{Highlighting}
 \end{Shaded}
 
-nulo + heterocedasticidad
+Nulo + heterocedasticidad
 
 \begin{Shaded}
 \begin{Highlighting}[]
@@ -205,7 +204,7 @@ nulo + heterocedasticidad
 \end{Highlighting}
 \end{Shaded}
 
-nulo + efecto aleatorio de isla/continente + heterocedasticidad
+Nulo + efecto aleatorio de isla/continente + heterocedasticidad
 
 \begin{Shaded}
 \begin{Highlighting}[]
@@ -216,7 +215,7 @@ nulo + efecto aleatorio de isla/continente + heterocedasticidad
 \end{Highlighting}
 \end{Shaded}
 
-modelo alternativo con efecto fijo de la isla y longitud
+Modelo alternativo con efecto fijo de la isla y longitud
 
 \begin{Shaded}
 \begin{Highlighting}[]
@@ -224,7 +223,7 @@ modelo alternativo con efecto fijo de la isla y longitud
 \end{Highlighting}
 \end{Shaded}
 
-alternativo + efecto aleatorio de isla/continente
+Alternativo + efecto aleatorio de isla/continente
 
 \begin{Shaded}
 \begin{Highlighting}[]
@@ -233,7 +232,7 @@ alternativo + efecto aleatorio de isla/continente
 \end{Highlighting}
 \end{Shaded}
 
-alternativo + heterocedasticidad
+Alternativo + heterocedasticidad
 
 \begin{Shaded}
 \begin{Highlighting}[]
@@ -241,7 +240,7 @@ alternativo + heterocedasticidad
 \end{Highlighting}
 \end{Shaded}
 
-alternativo + efecto aleatorio de isla/continente + heterocedasticidad
+Alternativo + efecto aleatorio de isla/continente + heterocedasticidad
 
 \begin{Shaded}
 \begin{Highlighting}[]
@@ -254,6 +253,8 @@ alternativo + efecto aleatorio de isla/continente + heterocedasticidad
 
 \hypertarget{resultados}{%
 \subsection{Resultados}\label{resultados}}
+
+Comparamos el AIC de los modelos ajustados
 
 \begin{Shaded}
 \begin{Highlighting}[]
@@ -274,56 +275,34 @@ alternativo + efecto aleatorio de isla/continente + heterocedasticidad
 ## f111     8  9 -6189.484 -6142.606 3103.742 7 vs 8 23.55687  <.0001
 \end{verbatim}
 
+Reordenamos los modelos según el AIC
+
 \begin{Shaded}
 \begin{Highlighting}[]
 \NormalTok{mis.aics <-}\StringTok{ }\KeywordTok{AIC}\NormalTok{(f000,f010,f001,f011,}
 \NormalTok{  f100,f110,f101,f111)}
-\KeywordTok{cbind}\NormalTok{(mis.aics,}\DataTypeTok{delta.AIC=}\NormalTok{mis.aics[,}\DecValTok{2}\NormalTok{]}\OperatorTok{-}\KeywordTok{min}\NormalTok{(mis.aics[,}\DecValTok{2}\NormalTok{]))}
+\NormalTok{aic.tab <-}\StringTok{ }\KeywordTok{cbind}\NormalTok{(mis.aics,}\DataTypeTok{delta.AIC=}\NormalTok{mis.aics[,}\DecValTok{2}\NormalTok{]}\OperatorTok{-}\KeywordTok{min}\NormalTok{(mis.aics[,}\DecValTok{2}\NormalTok{]))}
+\NormalTok{aic.tab[}\KeywordTok{order}\NormalTok{(aic.tab}\OperatorTok{$}\NormalTok{AIC),]}
 \end{Highlighting}
 \end{Shaded}
 
 \begin{verbatim}
 ##      df       AIC delta.AIC
-## f000  5 -6171.918 20.475921
 ## f010  7 -6192.394  0.000000
-## f001  6 -6170.306 22.087613
-## f011  8 -6190.912  1.481951
-## f100  6 -6171.541 20.853132
 ## f110  8 -6190.970  1.424114
-## f101  7 -6169.927 22.467296
+## f011  8 -6190.912  1.481951
 ## f111  9 -6189.484  2.910423
+## f000  5 -6171.918 20.475921
+## f100  6 -6171.541 20.853132
+## f001  6 -6170.306 22.087613
+## f101  7 -6169.927 22.467296
 \end{verbatim}
 
-\begin{Shaded}
-\begin{Highlighting}[]
-\NormalTok{f010}
-\end{Highlighting}
-\end{Shaded}
+El Mejor modelo incluye efectos fijos y aleatorios de Isla, sin
+heterocedasticidad. Los modelos con longitud en el efecto fijo o
+heterocedasticidad son casi equivalentes (delta AIC \textless{} 2).
 
-\begin{verbatim}
-## Linear mixed-effects model fit by maximum likelihood
-##   Data: dts 
-##   Log-likelihood: 3103.197
-##   Fixed: S1_dur ~ Region 
-## (Intercept)   Regionisl 
-##  0.10394315  0.03296709 
-## 
-## Random effects:
-##  Formula: ~Region | LocCode
-##  Structure: Diagonal
-##         (Intercept)  Regionisl
-## StdDev:  0.01225407 0.03564827
-## 
-##  Formula: ~Region | IndivGroup %in% LocCode
-##  Structure: Diagonal
-##         (Intercept)  Regionisl   Residual
-## StdDev:  0.01327504 0.02540965 0.02224762
-## 
-## Number of Observations: 1351
-## Number of Groups: 
-##                 LocCode IndivGroup %in% LocCode 
-##                      14                      97
-\end{verbatim}
+Los detalles del modelo a continuación:
 
 \begin{Shaded}
 \begin{Highlighting}[]
