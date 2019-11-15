@@ -70,7 +70,11 @@
 \newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
 \newcommand{\WarningTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
 \usepackage{longtable,booktabs}
-\usepackage{graphicx,grffile}
+\usepackage{graphicx}
+% grffile has become a legacy package: https://ctan.org/pkg/grffile
+\IfFileExists{grffile.sty}{%
+\usepackage{grffile}
+}{}
 \makeatletter
 \def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
 \def\maxheight{\ifdim\Gin@nat@height>\textheight\textheight\else\Gin@nat@height\fi}
@@ -157,6 +161,8 @@ reclassificamos la variable Region para facilitar interpretación:
 \begin{Shaded}
 \begin{Highlighting}[]
 \NormalTok{dts}\OperatorTok{$}\NormalTok{Region <-}\StringTok{ }\KeywordTok{factor}\NormalTok{(dts}\OperatorTok{$}\NormalTok{Region,}\DataTypeTok{levels=}\KeywordTok{c}\NormalTok{(}\StringTok{"main"}\NormalTok{,}\StringTok{"isl"}\NormalTok{))}
+\NormalTok{dts <-}\StringTok{ }\KeywordTok{subset}\NormalTok{(dts,}\OperatorTok{!}\NormalTok{LocCode }\OperatorTok{%in%}\StringTok{ }\KeywordTok{c}\NormalTok{(}\StringTok{"VEN3"}\NormalTok{,}\StringTok{"VEN7"}\NormalTok{,}\StringTok{"VEN8"}\NormalTok{,}\StringTok{"VEN9"}\NormalTok{))}
+\NormalTok{dts}\OperatorTok{$}\NormalTok{LocCode <-}\StringTok{ }\KeywordTok{droplevels}\NormalTok{(dts}\OperatorTok{$}\NormalTok{LocCode)}
 \end{Highlighting}
 \end{Shaded}
 
@@ -265,14 +271,14 @@ Comparamos el AIC de los modelos ajustados
 
 \begin{verbatim}
 ##      Model df       AIC       BIC   logLik   Test   L.Ratio p-value
-## f000     1  5 -2186.832 -2160.789 1098.416                         
-## f010     2  7 -2184.348 -2147.888 1099.174 1 vs 2   1.51642  0.4685
-## f001     3  6 -2301.774 -2270.522 1156.887 2 vs 3 115.42538  <.0001
-## f011     4  8 -2298.315 -2256.646 1157.157 3 vs 4   0.54116  0.7629
-## f100     5  6 -2185.735 -2154.484 1098.868 4 vs 5 116.57950  <.0001
-## f110     6  8 -2183.962 -2142.293 1099.981 5 vs 6   2.22657  0.3285
-## f101     7  7 -2300.952 -2264.492 1157.476 6 vs 7 114.98989  <.0001
-## f111     8  9 -2297.940 -2251.062 1157.970 7 vs 8   0.98812  0.6101
+## f000     1  5 -2125.771 -2099.848 1067.886                         
+## f010     2  7 -2124.056 -2087.764 1069.028 1 vs 2   2.28474  0.3191
+## f001     3  6 -2236.157 -2205.049 1124.078 2 vs 3 110.10053  <.0001
+## f011     4  8 -2233.201 -2191.724 1124.600 3 vs 4   1.04403  0.5933
+## f100     5  6 -2124.581 -2093.473 1068.290 4 vs 5 112.61992  <.0001
+## f110     6  8 -2123.759 -2082.282 1069.879 5 vs 6   3.17799  0.2041
+## f101     7  7 -2235.237 -2198.944 1124.618 6 vs 7 109.47793  <.0001
+## f111     8  9 -2232.900 -2186.238 1125.450 7 vs 8   1.66301  0.4354
 \end{verbatim}
 
 Reordenamos los modelos según el AIC
@@ -288,14 +294,14 @@ Reordenamos los modelos según el AIC
 
 \begin{verbatim}
 ##      df       AIC   delta.AIC
-## f001  6 -2301.774   0.0000000
-## f101  7 -2300.952   0.8218766
-## f011  8 -2298.315   3.4588391
-## f111  9 -2297.940   3.8337521
-## f000  5 -2186.832 114.9418016
-## f100  6 -2185.735 116.0383391
-## f010  7 -2184.348 117.4253805
-## f110  8 -2183.962 117.8117676
+## f001  6 -2236.157   0.0000000
+## f101  7 -2235.237   0.9199722
+## f011  8 -2233.201   2.9559659
+## f111  9 -2232.900   3.2569575
+## f000  5 -2125.771 110.3852646
+## f100  6 -2124.581 111.5758840
+## f010  7 -2124.056 112.1005254
+## f110  8 -2123.759 112.3978989
 \end{verbatim}
 
 El Mejor modelo incluye efectos fijos de Isla, con heterocedasticidad.
@@ -314,39 +320,39 @@ Los detalles del modelo a continuación:
 ## Linear mixed-effects model fit by maximum likelihood
 ##  Data: dts 
 ##         AIC       BIC   logLik
-##   -2301.774 -2270.522 1156.887
+##   -2236.157 -2205.049 1124.078
 ## 
 ## Random effects:
 ##  Formula: ~1 | LocCode
 ##          (Intercept)
-## StdDev: 7.073414e-06
+## StdDev: 6.125629e-06
 ## 
 ##  Formula: ~1 | IndivGroup %in% LocCode
 ##         (Intercept)  Residual
-## StdDev:  0.06338031 0.1194013
+## StdDev:  0.06162041 0.1194656
 ## 
 ## Variance function:
 ##  Structure: Different standard deviations per stratum
 ##  Formula: ~1 | Region 
 ##  Parameter estimates:
-##       isl      main 
-## 1.0000000 0.6444745 
+##      isl     main 
+## 1.000000 0.645795 
 ## Fixed effects: Tcall_dur ~ Region 
 ##                  Value   Std.Error   DF   t-value p-value
-## (Intercept) 0.25138379 0.009432923 1254 26.649618  0.0000
-## Regionisl   0.04777994 0.014436402   12  3.309685  0.0062
+## (Intercept) 0.24916704 0.009566891 1226 26.044724  0.0000
+## Regionisl   0.05009161 0.014349363    8  3.490859  0.0082
 ##  Correlation: 
 ##           (Intr)
-## Regionisl -0.653
+## Regionisl -0.667
 ## 
 ## Standardized Within-Group Residuals:
 ##         Min          Q1         Med          Q3         Max 
-## -3.03528534 -0.48939729 -0.08884927  0.42038880  5.63556696 
+## -2.72942119 -0.50238016 -0.09720572  0.41615095  5.63287779 
 ## 
-## Number of Observations: 1351
+## Number of Observations: 1319
 ## Number of Groups: 
 ##                 LocCode IndivGroup %in% LocCode 
-##                      14                      97
+##                      10                      93
 \end{verbatim}
 
 \begin{Shaded}
@@ -359,9 +365,9 @@ Los detalles del modelo a continuación:
 ## Approximate 95% confidence intervals
 ## 
 ##  Fixed effects:
-##                  lower       est.      upper
-## (Intercept) 0.23289144 0.25138379 0.26987614
-## Regionisl   0.01634901 0.04777994 0.07921086
+##                  lower       est.     upper
+## (Intercept) 0.23041199 0.24916704 0.2679221
+## Regionisl   0.01702702 0.05009161 0.0831562
 ## attr(,"label")
 ## [1] "Fixed effects:"
 \end{verbatim}
@@ -375,10 +381,10 @@ Los detalles del modelo a continuación:
 \begin{verbatim}
 ##              Variance     StdDev      
 ## LocCode =    pdLogChol(1)             
-## (Intercept)  5.003319e-11 7.073414e-06
+## (Intercept)  3.752333e-11 6.125629e-06
 ## IndivGroup = pdLogChol(1)             
-## (Intercept)  4.017064e-03 6.338031e-02
-## Residual     1.425668e-02 1.194013e-01
+## (Intercept)  3.797075e-03 6.162041e-02
+## Residual     1.427203e-02 1.194656e-01
 \end{verbatim}
 
 

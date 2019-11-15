@@ -1,6 +1,7 @@
 ---
 title: "Análisis de las llamadas de A. pertinax (variable Tcall dur)"
 author: "José R. Ferrer Paris"
+date: 2019-11-15
 output: pdf_document
 header-includes:
 - \usepackage{graphicx}
@@ -18,103 +19,190 @@ library(ape)
 
 ```
 
-
+## Exploración de los datos
 Leemos el archivo de datos de Aratinga pertinax, versión de 2019, y reclassificamos la variable Region para facilitar interpretación:
 
 ```{r}
 dts <- read.csv(sprintf("%s/data/mdf_JR_15viii19.csv",script.dir))
-
 str(dts)
 dts$Region <- factor(dts$Region,levels=c("main","isl"))
+```
+
+Verificamos las dos variables (duración de la primera sílaba y duración total). Existe una correlación natural entre ambas, pero hay un grupo que tiene un valor casi idéntico y se aprecia como un línea recta. No se si esto es un error, o si se desea incluir este tipo de observaciones en el análisis, pero me parecen que deberían excluirse.
+
+```{r}
+layout(matrix(1:2,ncol=2))
+plot(Tcall_dur~S1_dur,dts,xlab="S1",ylab="Total call",main="Datos originales")
+plot(Tcall_dur~S1_dur,subset(dts,Tcall_dur>S1_dur*1.1),xlab="S1",ylab="Total call",main="Datos filtrados")
 
 ```
-Vamos a comparar ocho modelos para la variable Tcall_dur
+Verificamos la duración total por localidad (LocCode). El ancho es proporcional al número de observaciones. Mi sugerencia para no sacrificar tantas muestras es combinar los grupos más pequeños según proximidad geográfica y similitud en la duración.
+```{r}
+boxplot(Tcall_dur~LocCode,dts,las=2,varwidth=T,xlab="",ylab="Total call",main="Datos originales")
+```
 
-|   MODELO  |  efecto fijo | efecto aleatorio | heterocedasticidad |
+La distribución espacial de las localidades y la agrupación sugerida es la siguiente.
+
+```{r}
+xys <- with(dts,aggregate(data.frame(Lat,Long),by=list(LocCode=LocCode),median))
+plot(Lat~Long,xys,col="grey81")
+with(xys,text(Long,Lat,LocCode),cex=.7)
+rect(-67,6,-64,8,border=4,lty=2)
+rect(-66,10,-68,11,border=3,lty=2)
+rect(-67,8,-68,10,border=2,lty=2)
+rect(-69,11,-70,10,border=10,lty=2)
+```
+
+A continuación aplicamos el filtro y agrupamos las localidades según la exploración anterior.
+
+```{r}
+dts <- subset(dts,Tcall_dur>S1_dur*1.1)
+dts[dts$LocCode %in% c("VEN2","VEN3"),"LocCode"] <- "VEN2"
+dts[dts$LocCode %in% c("VEN7","VEN1"),"LocCode"] <- "VEN1"
+dts[dts$LocCode %in% c("VEN8","VEN9"),"LocCode"] <- "VEN8"
+dts[dts$LocCode %in% c("VEN4","VEN5"),"LocCode"] <- "VEN5"
+##dts <- subset(dts,!LocCode %in% c("VEN3","VEN7","VEN8","VEN9") & (Tcall_dur>S1_dur*1.1))
+dts$LocCode <- droplevels(dts$LocCode)
+dts$IndivGroup <- droplevels(dts$IndivGroup)
+```
+
+El gráfico de duración por localidad queda de la siguiente manera.
+
+```{r}
+boxplot(Tcall_dur~LocCode,dts,las=2,varwidth=T,xlab="",ylab="Total call",main="Datos filtrados y agrupados")
+```
+
+Vemos que la localidad VEN2 (combinación de VEN2 y VEN3) tiene una duración más parecida a la de las islas, y la de TOR tiene una duración más parecida a la de tierra firme. Por otro lado VEN5 tiene mucha variabilidad. ¿Alguna sugerencia sobre como explicar esto?
+
+Otro aspecto clave es que la distribución de valores de la variable duración total no es normal, de hecho es ligeramente asimétrica y esto genera una distribución asimétrica de residuales en los modelos. Después de varias pruebas, parece que la transformación logarítmica mejora la distribución de los residuales, sin embargo, al aplicarla resalta una ligera bimodalidad en los datos.
+
+```{r}
+layout(matrix(1:2,ncol=2))
+hist(dts$Tcall_dur,ylab="Frecuencia",xlab="Total call",main="Datos originales")
+hist(log(dts$Tcall_dur),ylab="Frecuencia",xlab="log (Total call)",main="Transformación logarítmica")
+
+```
+
+Al revisar el histograma por Localidad, pareciera que la bimodalidad es más pronunciada en algunas localidades que en otras
+
+```{r}
+histogram(~log(Tcall_dur)|LocCode,dts)
+
+```
+Pero parece estar más relacionada con la duración de la primera sílaba. Por ejemplo si se compara las que tienen una primera silaba corta vs larga (umbral arbitrario de 0.135ms), los histogramas se ven mejor. ¿Puede que se trate de varios tipos de llamadas/comportamientos diferentes?
+
+```{r}
+histogram(~log(Tcall_dur)|(S1_dur>.135),dts)
+```
+
+Mi recomendación para los análisis es:
+  * filtrar llamadas consistentes de una sola silaba (Tcall_dur<S1_dur*1.1)
+  * agrupar las localidades de tierra firme por proximidad y similitud para homogeneizar un poco el tamaño muestral
+  * usar la transformación logarítmica para la duración
+  * Es necesario considerar como aminorar la bimodalidad en el modelo, después de considerar varias opciones estoy usando un 'offset' de S1_dur (suponiendo que la duración de S1 tiene un efecto directo en Tcall), pero tal vez haga falta introducir alguna variable adicional o restringir el análisis a un subconjunto de grabaciones más homogeneo
+
+## Ajuste de modelos
+Vamos a considerar varios modelos para la variable Tcall_dur y utilizar el valor de AIC calculado por la función para escoger el mejor modelo. Debemos obviar el valor de las pruebas de t y F en las tablas, y basar la selección en las diferencias en AIC.
+
+A partir de la exploración de los datos usamos un modelo con efecto fijo constante (offset(S1_dur)) y dos alternativas para representar el efecto geográfico : offset(S1_dur) + Region o offset(S1_dur) + Long + Lat
+
+La nomenclatura de los modelos es la siguiente
+
+|   MODELO  |  componente | valor |
 | --- | --- | --- | --- |
-|f000|isla|constante|sin|
-|f010| isla |isla | sin |
-|f001| isla |constante| isla |
-|f011| isla |isla | isla |
-|f100| isla+long|constante|sin|
-|f110| isla+long|isla|sin|
-|f101| isla+long|constante| isla|
-|f111| isla+long|isla |isla|
+|f0__|efecto fijo | offset(S1_dur) |
+|f1__|efecto fijo | offset(S1_dur) + Region |
+|f2__|efecto fijo | offset(S1_dur) + Long + Lat |
+|f_0_| Efecto aleatorio | LocCode/IndivGroup |
+|f_1_| Efecto aleatorio | Region + LocCode/IndivGroup |
+|f__0| Heterocedasticidad | No |
+|f__1| Heterocedasticidad | Si |
+
 
 El modelo nulo con efecto fijo de la isla
 ```{r}
-f000 <- lme(Tcall_dur~Region,dts,random=~1|LocCode/IndivGroup, method="ML")
+
+f000 <- lme(log(Tcall_dur)~offset(log(S1_dur)),dts,random=~1|LocCode/IndivGroup, method="ML")
+f100 <- lme(log(Tcall_dur)~offset(log(S1_dur))+Region,dts,random=~1|LocCode/IndivGroup, method="ML")
+f200 <- lme(log(Tcall_dur)~offset(log(S1_dur))+Lat+Long,dts,random=~1|LocCode/IndivGroup, method="ML")
+
+f010 <- update(f000,random=~1|Region/LocCode/IndivGroup)
+f110 <- update(f100,random=~1|Region/LocCode/IndivGroup)
+f210 <- update(f200,random=~1|Region/LocCode/IndivGroup)
+
+## con esta parametrización no hace falta usar pdDiag
+##f010 <- update(f000,random=list(LocCode=pdDiag(~Region),IndivGroup=pdDiag(~Region)))
+##f110 <- update(f100,random=list(LocCode=pdDiag(~Region),IndivGroup=pdDiag(~Region)))
+##f210 <- update(f200,random=list(LocCode=pdDiag(~Region),IndivGroup=pdDiag(~Region)))
+
+f001 <- update(f000,weights=varIdent(form=~1|Region))
+f101 <- update(f100,weights=varIdent(form=~1|Region))
+f201 <- update(f200,weights=varIdent(form=~1|Region))
+f011 <- update(f010,weights=varIdent(form=~1|Region))
+f111 <- update(f110,weights=varIdent(form=~1|Region))
+f211 <- update(f210,weights=varIdent(form=~1|Region))
+
 ```
-Nulo + efecto aleatorio de isla/continente
+Comparamos el valor de AIC
 ```{r}
-f010 <- lme(Tcall_dur~Region,dts,
-  random=list(LocCode=pdDiag(~Region),IndivGroup=pdDiag(~Region)), method="ML")
+(mis.aics <- AIC(f000,f100,f200,f010,f110,f210,
+  f001,f101,f201,f011,f111,f211))
  ```
- Nulo + heterocedasticidad
- ```{r}
-f001 <- lme(Tcall_dur~Region,dts,random=~1|LocCode/IndivGroup,weights=varIdent(form=~1|Region), method="ML")
-```
-Nulo + efecto aleatorio de isla/continente + heterocedasticidad
- ```{r}
-f011 <-
-  lme(Tcall_dur~Region,dts,
-    random=list(LocCode=pdDiag(~Region),IndivGroup=pdDiag(~Region)),
-    weights=varIdent(form=~1|Region), method="ML")
-
-```
-
- Modelo alternativo con efecto fijo de la isla y longitud
- ```{r}
-f100 <- lme(Tcall_dur~Region+Long,dts,random=~1|LocCode/IndivGroup, method="ML")
-
-```
- Alternativo + efecto aleatorio de isla/continente
- ```{r}
-f110 <- lme(Tcall_dur~Region+Long,dts,
-      random=list(LocCode=pdDiag(~Region),IndivGroup=pdDiag(~Region)), method="ML")
-
-      ```
-Alternativo + heterocedasticidad
- ```{r}
-f101 <- lme(Tcall_dur~Region+Long,dts,random=~1|LocCode/IndivGroup,weights=varIdent(form=~1|Region), method="ML")
-
-```
-
-Alternativo + efecto aleatorio de isla/continente + heterocedasticidad
-```{r}
-f111 <-
-      lme(Tcall_dur~Region+Long,dts,
-        random=list(LocCode=pdDiag(~Region),IndivGroup=pdDiag(~Region)),
-        weights=varIdent(form=~1|Region), method="ML")
-
-```
-
-## Resultados
-Comparamos el AIC de los modelos ajustados
-```{r}
-anova(f000,f010,f001,f011,
-  f100,f110,f101,f111)
-```
 
 Reordenamos los modelos según el AIC
 ```{r}
-
-mis.aics <- AIC(f000,f010,f001,f011,
-  f100,f110,f101,f111)
 aic.tab <- cbind(mis.aics,delta.AIC=mis.aics[,2]-min(mis.aics[,2]))
 aic.tab[order(aic.tab$AIC),]
+```
+
+Los cuatro mejores modelos ($\Delta AIC < 3$) incluyen efectos fijos de Latitud y Longitud que puede interpretarse como fuerte evidencia de la existencia de un gradiente espacial en la longitud de la llamada, pero difieren en los componentes de varianza (efectos aleatorios y heterocedasticidad).
+
+El mejor modelo incluye efectos aleatorios en dos niveles (localidades y grupos) y heterocedasticidad entre regiones (continente vs isla), mientras que la inclusión de un tercer nivel de efectos aleatorios o la exclusión de la heterocedasticidad tiene menos soporte.
+
+A continuación el resumen del mejor modelo. Los efectos fijos sugieren que hay efectos positivos de la latitud y longitud en la duración de la llamada, pero el efecto de la latitud es de mayor magnitud. La mayor porción de varianza está en los residuales, seguida por los grupos, y la menor porción en las localidades, y la función de varianza residual es ligeramente menor en tierra firme que en las islas.
+
+```{r}
+summary(f201)
 
 ```
 
-El Mejor modelo incluye efectos fijos de Isla, con heterocedasticidad. El modelo con longitud en el efecto fijo tiene un soporte similar (delta AIC < 2).
-
-Los detalles del modelo a continuación:
+Los residuales del modelo tienen una distribución ligeramente asimétrica y muestran varios valores extremos en ambas colas (< -3 o >3).
 
 ```{r}
+plot(f201)
 
-summary(f001)
+```
 
-intervals(f001,which="fixed")
+ Los intervalos de confianza aproximados sugieren efectos significativos en los efectos fijos. Los efectos fijos de los modelos alternativos son muy similares.
 
-VarCorr(f001)
+```{r}
+intervals(f201,which="fixed")
+```
+
+Los intervalos de confianza aproximados para los componentes de varianza muestran:
+  * componentes de similar magnitud entre grupos y residual y menor valor para localidad,
+  * el componente de heterocedasticidad no es completamente diferente a uno (valor de referencia para las islas).
+
+```{r}
+intervals(f201,which="var-cov")
+```
+
+Aproximadamente 50% de la varianza es residual (dentro de grupos o "no explicada"), 40 % se debe a diferencia entre grupos dentro de las localidades y solo 6% se puede atribuir a diferencias entre localidades
+```{r}
+vs <- varcomp(f201)
+round(vs*100/sum(vs),1)
+```
+
+Los resultados con modelos alternativos son similares (la proporción de varianza atribuible a la region en los modelos f211 y f210 es equivalente a cero).
+
+```{r}
+vs <- varcomp(f200)
+round(vs*100/sum(vs),1)
+
+vs <- varcomp(f211)
+round(vs*100/sum(vs),1)
+
+vs <- varcomp(f210)
+round(vs*100/sum(vs),1)
+
 ```

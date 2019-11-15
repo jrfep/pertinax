@@ -25,7 +25,7 @@ setwd(work.dir)
 
 mi.arch <- 'Analisis_S1_dur.Rmd'
 mi.arch <- 'Analisis_Tcall_dur.Rmd'
-rmarkdown::render(sprintf("%s/R/%s",script.dir,mi.arch),"pdf_document")
+rmarkdown::render(sprintf("%s/R/%s",script.dir,mi.arch),"word_document")
 
 ## preview document in linux
 ##system(sprintf("atril %s/R/%s &",script.dir,gsub(".Rmd",".pdf",mi.arch)))
