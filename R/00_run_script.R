@@ -23,8 +23,7 @@ setwd(work.dir)
 
 ## This will run the markdown document with R script to produce the output pdf
 
-mi.arch <- 'Analisis_S1_dur.Rmd'
-mi.arch <- 'Analisis_Tcall_dur.Rmd'
+mi.arch <- 'Analisis_conjunto.Rmd'
 rmarkdown::render(sprintf("%s/R/%s",script.dir,mi.arch),"word_document")
 
 ## preview document in linux

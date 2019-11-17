@@ -1,0 +1,228 @@
+---
+title: "Análisis de las llamadas de A. pertinax (variable Tcall dur)"
+author: "José R. Ferrer Paris"
+date: 2019-11-18
+output: pdf_document
+header-includes:
+- \usepackage{graphicx}
+- \usepackage{float}
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,
+			   eval = TRUE,
+                 warning=FALSE,
+                 fig.pos='H'
+                )
+
+library(nlme)
+library(ape)
+
+```
+
+## Exploración de los datos
+Leemos el archivo de datos de Aratinga pertinax, versión de 2019,  reclassificamos la variable Region para facilitar interpretación, y descartamos grupos con pocas observaciones:
+
+```{r}
+dts <- read.csv(sprintf("%s/data/mdf_JR_15viii19.csv",script.dir))
+str(dts)
+dts$Region <- factor(dts$Region,levels=c("main","isl"))
+dts <- subset(dts,!LocCode %in% c("VEN3","VEN7","VEN8","VEN9") )
+dts$LocCode <- droplevels(dts$LocCode)
+dts$IndivGroup <- droplevels(dts$IndivGroup)
+```
+
+Verificamos el histograma de las dos variables (duración de la primera sílaba y duración total). Se observa asimetría marcada e indicios de multimodalidad
+
+```{r}
+layout(matrix(1:2,ncol=2))
+hist(dts$Tcall_dur,main="Tcall",ylab="Frequencia")
+hist(dts$S1_dur,main="S1",ylab="Frecuencia")
+```
+
+
+Verificamos la duración total y duración de la primera silaba por localidad (LocCode). El ancho es proporcional al número de observaciones.
+
+```{r}
+boxplot(S1_dur~LocCode,dts,las=2,varwidth=T,xlab="",ylab="S1",main="")
+```
+
+Para algunos grupos se observan conjuntos de valores extremos muy diferentes al resto.
+
+```{r}
+boxplot(Tcall_dur~LocCode,dts,las=2,varwidth=T,xlab="",ylab="Total call",main="")
+```
+
+## Ajuste de modelos
+Vamos a considerar varios modelos para las variables Tcall_dur y S1 usando transformación logarítmica. Utilizamos el valor de AIC marginal calculado por la función para escoger el mejor modelo. Debemos obviar el valor de las pruebas de t y F en las tablas, y basar la selección en las diferencias en AIC.
+
+A partir de la exploración de los datos usamos un modelo con efecto fijo constante  y un modelo alternativo para representar el efecto geográfico de la variable Region
+
+La nomenclatura de los modelos es la siguiente
+
+|   MODELO  |  componente | valor |
+| --- | --- | --- |
+|S___|variable respuesta | log (S1) |
+|T___|variable respuesta | log (Tcall) |
+|_0__|efecto fijo | constante |
+|_1__|efecto fijo | Region |
+|__0_| Efecto aleatorio | IndivGroup |
+|__1_| Efecto aleatorio | LocCode/IndivGroup |
+|__2_| Efecto aleatorio | Region/LocCode/IndivGroup |
+|___0| Heterocedasticidad | No |
+|___1| Heterocedasticidad | Si |
+
+
+A continuación el código para ajustar todos los modelos
+
+```{r}
+
+S000 <- lme(log(S1_dur)~1,dts,random=~1|IndivGroup, method="ML")
+S100 <- lme(log(S1_dur)~Region,dts,random=~1|IndivGroup, method="ML")
+
+S010 <- update(S000,random=~1|LocCode/IndivGroup)
+S110 <- update(S100,random=~1|LocCode/IndivGroup)
+
+S020 <- update(S000,random=~1|Region/LocCode/IndivGroup)
+S120 <- update(S100,random=~1|Region/LocCode/IndivGroup)
+
+S001 <- update(S000,weights=varIdent(form=~1|Region))
+S101 <- update(S100,weights=varIdent(form=~1|Region))
+S011 <- update(S010,weights=varIdent(form=~1|Region))
+S111 <- update(S110,weights=varIdent(form=~1|Region))
+S021 <- update(S020,weights=varIdent(form=~1|Region))
+S121 <- update(S120,weights=varIdent(form=~1|Region))
+
+T000 <- lme(log(Tcall_dur)~1,dts,random=~1|IndivGroup, method="ML")
+T100 <- lme(log(Tcall_dur)~Region,dts,random=~1|IndivGroup, method="ML")
+
+T010 <- update(T000,random=~1|LocCode/IndivGroup)
+T110 <- update(T100,random=~1|LocCode/IndivGroup)
+
+T020 <- update(T000,random=~1|Region/LocCode/IndivGroup)
+T120 <- update(T100,random=~1|Region/LocCode/IndivGroup)
+
+T001 <- update(T000,weights=varIdent(form=~1|Region))
+T101 <- update(T100,weights=varIdent(form=~1|Region))
+T011 <- update(T010,weights=varIdent(form=~1|Region))
+T111 <- update(T110,weights=varIdent(form=~1|Region))
+T021 <- update(T020,weights=varIdent(form=~1|Region))
+T121 <- update(T120,weights=varIdent(form=~1|Region))
+
+```
+Comparamos el valor de AIC para cada variable respuesta
+
+```{r}
+S.aics <- AIC(S000,S100,S010,S110,S020,S120,
+  S001,S101,S011,S111,S021,S121)
+T.aics <- AIC(T000,T100,T010,T110,T020,T120,
+  T001,T101,T011,T111,T021,T121)
+ ```
+
+Reordenamos los modelos según el AIC
+```{r}
+aic.tab.S <- cbind(S.aics,delta.AIC=S.aics[,2]-min(S.aics[,2]))
+aic.tab.T <- cbind(T.aics,delta.AIC=T.aics[,2]-min(T.aics[,2]))
+```
+
+### Resultados para S1
+
+Los modelos con heterocedasticidad y dos niveles de efectos aleatorios tienen el mayor soporte y son casi equivalentes ($\Delta AIC \leq 2$), por lo que no se puede decir que haya evidencia definitiva sobre la importancia del efecto fijo en esta variable. Los modelos con tres niveles de efectos aleatorios tienen parametros nulos ($\Delta AIC \approx 2$ y el estimado del efecto de region es cero).
+
+```{r}
+aic.tab.S[order(aic.tab.S$AIC),]
+
+```
+A continuación el resumen del mejor modelo. Los efectos fijos sugieren que hay mayor duración en la isla que en tierra firme. La varianza está repartida en los tres componentes (localidades, grupos y residuales), y la función de varianza residual es mayor en tierra firme que en las islas.
+
+```{r}
+summary(S111)
+
+```
+
+Los residuales del modelo tienen una distribución más o menos simétrica pero con valores extremos en ambas colas ($< -3$ o $>3$), y cierta estructura residual (menor variabilidad en el extremo izquierdo, variabilidad entre $-2.3 $ y $-2.0$). Esto parece indicar que no se han incluido fuentes de variación importantes en el modelo (multimodalidad en la variable respuesta).
+
+```{r}
+plot(S111)
+
+```
+
+ Los intervalos de confianza aproximados sugieren que la diferencia en duración entre islas y continente NO es significativa. Recordemos que el modelo alternativo S011 sin efecto de la region tiene un soporte similar.
+
+```{r}
+intervals(S111,which="fixed")
+```
+
+Los intervalos de confianza aproximados para los componentes de varianza muestran:
+  * componente de varianza entre localidades es ligeramente superior a la varianza entre grupos y residual,
+  * el componente de heterocedasticidad indica diferencias significativas, con una variabilidad 12 -- 32 % mayor en tierra firma que en islas.
+
+```{r}
+intervals(S111,which="var-cov")
+```
+
+Aproximadamente 45% de la varianza se puede atribuir a diferencias entre localidades, y el resto se reparte en diferencias entre grupos y residual (dentro de grupos o "no explicada").
+```{r}
+vs <- varcomp(S111)
+round(vs*100/sum(vs),1)
+```
+
+La partición de varianza del modelos alternativo es similar.
+
+```{r}
+vs <- varcomp(S011)
+round(vs*100/sum(vs),1)
+
+```
+
+
+### Resultados para Tcall
+
+Todos los modelos con heterocedasticidad tienen buen soporte de los datos ($\Delta AIC \leq 10$), y la evidencia favorece un efecto fijo de la region ($\Delta AIC \leq 5$) pero no hay diferencias que apoyen una partición de varianza en dos o tres niveles de efectos aleatorios (diferencias en AIC equivalentes al número de parámetros añadidos).
+
+```{r}
+aic.tab.T[order(aic.tab.T$AIC),]
+
+```
+A continuación el resumen del mejor modelo. Los efectos fijos sugieren que hay mayor duración en la isla que en tierra firme. La varianza está repartida en dos componentes (grupos y residuales), y la función de varianza residual es menor en tierra firme que en las islas.
+
+```{r}
+summary(T101)
+
+```
+
+Los residuales del modelo tienen una distribución ligeramente asimétrica con valores extremos en ambas colas ($< -3$ o $>3$), y _mucha_ estructura residual (muchos grupos densos de puntos). Esto parece indicar que no se han incluido fuentes de variación importantes en el modelo. Hay que considerar seriamente la multimodalidad en la variable respuesta y la correlación con otras variables.
+
+```{r}
+plot(T101)
+
+```
+
+ Los intervalos de confianza aproximados confirman que la diferencia en duración entre islas y continente es significativa.
+
+```{r}
+intervals(T101,which="fixed")
+```
+
+Los intervalos de confianza aproximados para los componentes de varianza muestran:
+  * componente de varianza residual es claramente mayor a la varianza entre grupos,
+  * el componente de heterocedasticidad indica diferencias significativas, con una variabilidad 23 -- 34 % menor en tierra firma que en islas.
+
+```{r}
+intervals(T101,which="var-cov")
+```
+
+Aproximadamente una cuarta parte de la varianza se puede atribuir a diferencias entre grupos, y el resto es varianza residual (dentro de grupos o "no explicada").
+```{r}
+vs <- varcomp(T101)
+round(vs*100/sum(vs),1)
+```
+
+La partición de varianza es similar aunque se agreguen más niveles aleatorios en el modelo.
+
+```{r}
+vs <- varcomp(T111)
+round(vs*100/sum(vs),1)
+vs <- varcomp(T121)
+round(vs*100/sum(vs),1)
+
+```
