@@ -24,6 +24,7 @@ setwd(work.dir)
 ## This will run the markdown document with R script to produce the output pdf
 
 mi.arch <- 'Analisis_conjunto.Rmd'
+#mi.arch <- 'Analisis-conjunto-mejorado.Rmd' # probar otro componente de heterocedasticidad y eliminar outliers # descartado
 rmarkdown::render(sprintf("%s/R/%s",script.dir,mi.arch),"word_document")
 
 ## preview document in linux

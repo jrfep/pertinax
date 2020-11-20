@@ -92,8 +92,9 @@ S111 <- update(S110,weights=varIdent(form=~1|Region))
 S021 <- update(S020,weights=varIdent(form=~1|Region))
 S121 <- update(S120,weights=varIdent(form=~1|Region))
 
-T000 <- lme(log(Tcall_dur)~1,dts,random=~1|IndivGroup, method="ML")
-T100 <- lme(log(Tcall_dur)~Region,dts,random=~1|IndivGroup, method="ML")
+dt2 <- subset(dts,subset=Tcall_dur<0.6)
+T000 <- lme(log(Tcall_dur)~1,dt2,random=~1|IndivGroup, method="ML",weights=varPower(form=~Tcall_dur))
+T100 <- lme(log(Tcall_dur)~Region,dt2,random=~1|IndivGroup, method="ML",weights=varPower(form=~Tcall_dur))
 
 T010 <- update(T000,random=~1|LocCode/IndivGroup)
 T110 <- update(T100,random=~1|LocCode/IndivGroup)
@@ -101,12 +102,16 @@ T110 <- update(T100,random=~1|LocCode/IndivGroup)
 T020 <- update(T000,random=~1|Region/LocCode/IndivGroup)
 T120 <- update(T100,random=~1|Region/LocCode/IndivGroup)
 
-T001 <- update(T000,weights=varIdent(form=~1|Region))
-T101 <- update(T100,weights=varIdent(form=~1|Region))
-T011 <- update(T010,weights=varIdent(form=~1|Region))
-T111 <- update(T110,weights=varIdent(form=~1|Region))
-T021 <- update(T020,weights=varIdent(form=~1|Region))
-T121 <- update(T120,weights=varIdent(form=~1|Region))
+T001 <- update(T000,weights=varComb(varIdent(form=~1|Region),varPower(.1,~Tcall_dur)))
+T101 <- update(T100,weights=varComb(varIdent(form=~1|Region),varPower(.1,~Tcall_dur)))
+T011 <- update(T010,weights=varComb(varIdent(form=~1|Region),varPower(.1,~Tcall_dur)))
+T111 <- update(T110,weights=varComb(varIdent(form=~1|Region),varPower(.1,~Tcall_dur)))
+T021 <- update(T020,weights=varComb(varIdent(form=~1|Region),varPower(.1,~Tcall_dur)))
+T121 <- update(T120,weights=varComb(varIdent(form=~1|Region),varPower(.1,~Tcall_dur)))
+
+
+#P101 <- update(T100,weights=varPower(form=~log(Tcall_dur)|Region))
+#E101 <- update(T100,weights=varExp(form=~log(Tcall_dur)|Region))
 
 ```
 Comparamos el valor de AIC para cada variable respuesta
@@ -198,7 +203,7 @@ plot(T101)
 ```
 
 ```{r}
-plot(residuals(T101)~log(dts$Tcall_dur))
+plot(residuals(T101)~log(dt2$Tcall_dur))
 
 ```
  Los intervalos de confianza aproximados confirman que la diferencia en duración entre islas y continente es significativa.
